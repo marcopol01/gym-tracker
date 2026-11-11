@@ -1,5 +1,5 @@
 // Cachea la app para que funcione sin conexión en el gimnasio.
-const CACHE = 'gym-v2';
+const CACHE = 'gym-v3';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {

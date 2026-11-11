@@ -178,21 +178,22 @@ function suggestion(ex){
   if(!prev.length) return { type:'new', why:`Primera vez: elige un peso con el que hagas entre ${c.min} y ${c.max} reps.` };
   const dates = [...new Set(prev.map(s=>s.date))].sort().reverse();
   const sess = d => { const l = prev.filter(s=>s.date===d); const top = Math.max(...l.map(s=>s.weight));
-    return { top, minReps: Math.min(...l.filter(s=>s.weight===top).map(s=>s.reps)) }; };
+    // Se mira la mejor serie con el peso más alto (con 1-2 series la segunda suele salir peor por cansancio)
+    return { top, best: Math.max(...l.filter(s=>s.weight===top).map(s=>s.reps)) }; };
   const last = sess(dates[0]);
-  if(last.minReps >= c.max)
+  if(last.best >= c.max)
     return { type:'up', weight:last.top + c.inc, reps:c.min,
-      why:`Hiciste ${c.max}+ reps en todas las series con ${kg(last.top)} kg. Toca subir peso.` };
-  if(last.minReps < c.min){
+      why:`Hiciste ${last.best} reps con ${kg(last.top)} kg. Toca subir peso.` };
+  if(last.best < c.min){
     const before = dates[1] && sess(dates[1]);
-    if(before && before.top===last.top && before.minReps < c.min)
+    if(before && before.top===last.top && before.best < c.min)
       return { type:'down', weight:roundTo(last.top*0.9, c.inc), reps:c.min,
         why:`Dos sesiones seguidas sin llegar a ${c.min} reps con ${kg(last.top)} kg. Baja un 10 % y vuelve a subir.` };
     return { type:'keep', weight:last.top, reps:c.min,
       why:`La última vez no llegaste a ${c.min} reps. Repite ${kg(last.top)} kg e intenta llegar al mínimo.` };
   }
-  return { type:'reps', weight:last.top, reps:last.minReps+1,
-    why:`Mismo peso, una rep más que la última vez (${last.minReps}). Cuando hagas ${c.max} en todas, subes peso.` };
+  return { type:'reps', weight:last.top, reps:last.best+1,
+    why:`Mismo peso, una rep más que tu mejor serie de la última vez (${last.best}). Cuando llegues a ${c.max}, subes peso.` };
 }
 function renderSuggest(){
   const s = suggestion($('#exercise').value), box = $('#suggest');
